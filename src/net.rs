@@ -2,7 +2,7 @@ use warp::Filter;
 use warp::http::{Method, HeaderMap};
 use std::sync::Arc;
 use uuid::Uuid;
-use crate::{applet_store::AppletStore, wasm_executor::WasmExecutor, log, config};
+use crate::{applet_store::AppletStore, runner::Runner, log, config};
 use crate::types::HttpRequest; // Import the custom request struct
 use bytes::Bytes;
 use std::net::IpAddr; // Import IpAddr
@@ -11,11 +11,11 @@ pub async fn start_server(store: Arc<AppletStore>) {
     // Access the global configuration
     let config = config::global_config();
 
-    let wasm_executor = Arc::new(WasmExecutor::new(store.clone()));
+    let wasm_runner = Arc::new(Runner::new(store.clone()));
 
     // Define a route for handling all requests
     let handle_request = {
-        let wasm_executor = wasm_executor.clone();
+        let wasm_runner = wasm_runner.clone();
     
         warp::path::param::<Uuid>() // Match a UUID in the path
             .and(warp::method()) // Capture the HTTP method
@@ -45,8 +45,8 @@ pub async fn start_server(store: Arc<AppletStore>) {
                         remote_addr,
                     };
     
-                    // Delegate to the WASM executor
-                    match wasm_executor.execute(uuid, request) {
+                    // Delegate to the WASM runner
+                    match wasm_runner.run(uuid, request) {
                         Ok(response) => warp::reply::with_status(
                             warp::reply::json(&response),
                             warp::http::StatusCode::OK,
