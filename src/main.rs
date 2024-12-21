@@ -1,7 +1,6 @@
 mod cli; // CLI module
 mod config; // Config module
 mod applet_store; // Applet store module
-// mod wasm_executor; // WASM executor module
 mod net; // Networking module
 mod types;
 mod log;
